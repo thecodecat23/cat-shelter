@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using CatsShelter.Service.Features.Adoption.Domain.Entities;
+using CatsShelter.Service.Features.Adoption.Domain.Exceptions;
 
 namespace CatsShelter.Service.UnitTests.Features.Adoption.Domain.Entities;
 
@@ -35,7 +36,7 @@ public class CatTests
             .Create();
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => cat.RequestAdoption());
+        var exception = Assert.Throws<CatUnavailableException>(() => cat.RequestAdoption());
         Assert.Equal("Cat is not available for adoption.", exception.Message);
     }
 

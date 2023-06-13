@@ -1,4 +1,6 @@
-﻿namespace CatsShelter.Service.Features.Adoption.Domain.Entities;
+﻿using CatsShelter.Service.Features.Adoption.Domain.Exceptions;
+
+namespace CatsShelter.Service.Features.Adoption.Domain.Entities;
 
 public class Cat
 {
@@ -16,7 +18,7 @@ public class Cat
     public void RequestAdoption()
     {
         if (!IsAvailable)
-            throw new InvalidOperationException("Cat is not available for adoption.");
+            throw new CatUnavailableException();
 
         IsAvailable = false;
     }
