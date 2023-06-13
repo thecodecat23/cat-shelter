@@ -41,16 +41,24 @@ public class CatRepositoryTests
         var cat = _fixture.Create<Cat>();
         var filter = Builders<Cat>.Filter.Eq(c => c.Id, id);
 
+        var mockCursor = new Mock<IAsyncCursor<Cat>>();
+        mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
+                  .ReturnsAsync(true)
+                  .ReturnsAsync(false);
+        mockCursor.SetupSequence(c => c.Current)
+                  .Returns(new List<Cat> { cat })
+                  .Returns(new List<Cat>());
+
         _mockCollection
-            .Setup(c => c.FindSync(filter, null, default(CancellationToken)))
-            .Returns(new Mock<IAsyncCursor<Cat>>(MockBehavior.Strict).Object);
+            .Setup(c => c.FindAsync(filter, It.IsAny<FindOptions<Cat>>(), default(CancellationToken)))
+            .ReturnsAsync(mockCursor.Object);
 
         // Act
-        var result = await _catsRepository.GetCatByIdAsync(id);
+        var result = await _catsRepository.GetCatByIdAsync(id, default(CancellationToken));
 
         // Assert
         Assert.Equal(cat, result);
-        _mockCollection.Verify(c => c.FindSync(filter, null, default(CancellationToken)), Times.Once);
+        _mockCollection.Verify(c => c.FindAsync(filter, It.IsAny<FindOptions<Cat>>(), default(CancellationToken)), Times.Once);
     }
 
     [Fact]
@@ -61,12 +69,12 @@ public class CatRepositoryTests
         var filter = Builders<Cat>.Filter.Eq(c => c.Id, id);
 
         _mockCollection
-            .Setup(c => c.FindSync(filter, null, default(CancellationToken)))
+            .Setup(c => c.FindSync(filter, It.IsAny<FindOptions<Cat>>(), default(CancellationToken)))
             .Returns((IAsyncCursor<Cat>)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<CatNotFoundException>(() => _catsRepository.GetCatByIdAsync(id));
-        _mockCollection.Verify(c => c.FindSync(filter, null, default(CancellationToken)), Times.Once);
+        await Assert.ThrowsAsync<CatNotFoundException>(() => _catsRepository.GetCatByIdAsync(id, default(CancellationToken)));
+        _mockCollection.Verify(c => c.FindSync(filter, It.IsAny<FindOptions<Cat>>(), default(CancellationToken)), Times.Once);
     }
 
     [Fact]
@@ -86,10 +94,9 @@ public class CatRepositoryTests
             .Returns(Task.FromResult(mockReplaceOneResult.Object));
 
         // Act
-        var result = await _catsRepository.UpdateCatAsync(cat);
+        await _catsRepository.UpdateCatAsync(cat, default(CancellationToken));
 
         // Assert
-        Assert.True(result);
         _mockCollection.Verify(c => c.ReplaceOneAsync(filter, cat, It.IsAny<ReplaceOptions>(), default(CancellationToken)), Times.Once);
     }
 
@@ -110,7 +117,7 @@ public class CatRepositoryTests
             .Returns(Task.FromResult(mockReplaceOneResult.Object));
 
         // Act & Assert
-        await Assert.ThrowsAsync<CatNotFoundException>(() => _catsRepository.UpdateCatAsync(cat));
+        await Assert.ThrowsAsync<CatNotFoundException>(() => _catsRepository.UpdateCatAsync(cat, default(CancellationToken)));
         _mockCollection.Verify(c => c.ReplaceOneAsync(filter, cat, It.IsAny<ReplaceOptions>(), default(CancellationToken)), Times.Once);
     }
 }
