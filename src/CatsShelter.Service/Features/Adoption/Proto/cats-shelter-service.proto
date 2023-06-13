@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option csharp_namespace = "CatsShelter.Service.Features.Adoption.Proto";
+
+service CatsShelterService {
+  rpc GetAvailableCats (Empty) returns (Cats) {}
+
+  rpc RequestAdoption (CatRequest) returns (AdoptionResponse) {}
+
+  rpc CancelAdoption (CatRequest) returns (AdoptionResponse) {}
+}
+
+message CatRequest {
+  string id = 1;
+}
+
+message Cats {
+  repeated Cat cats = 1;
+}
+
+message AdoptionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message Cat {
+  string id = 1;
+  string name = 2;
+  bool isAvailable = 3;
+}
+
+message Empty {}
