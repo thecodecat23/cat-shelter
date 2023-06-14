@@ -1,35 +1,55 @@
-﻿using AutoMapper;
+﻿using CatsShelter.Service.Features.Adoption.Domain.Entities;
 using CatsShelter.Service.Features.Adoption.Infrastructure.Repositories;
-using CatsShelter.Service.Features.Adoption.Proto;
 
 namespace CatsShelter.Service.Features.Adoption.Services;
 
 public class CatsAdoptionService : ICatsAdoptionService
 {
     private readonly ICatsRepository _catsRepository;
-    private readonly IMapper _catMapper;
 
     public CatsAdoptionService(
-        ICatsRepository catsRepository,
-        IMapper catMapper
+        ICatsRepository catsRepository
     )
     {
         _catsRepository = catsRepository;
-        _catMapper = catMapper;
     }
 
-    public Task<AdoptionResponse> CancelAdoption(CatRequest request)
+    public async Task<IEnumerable<Cat>> GetAvailableCatsAsync(CancellationToken cancellationToken) =>
+        await _catsRepository.GetAvailableCatsAsync(cancellationToken);
+
+    public async Task<CatAdoptionResponse> RequestAdoptionAsync(CatAdoptionRequest request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var cat = await _catsRepository.GetCatByIdAsync(request.CatId, cancellationToken);
+
+            cat.RequestAdoption();
+
+            await _catsRepository.UpdateCatAsync(cat, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            return new FailCatAdoptionResponse(exception);
+        }
+
+        return new SuccessRequestCatAdoptionResponse();
     }
 
-    public Task<Cats> GetAvailableCats(Empty request)
+    public async Task<CatAdoptionResponse> CancelAdoptionAsync(CatAdoptionRequest request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
-    }
+        try
+        {
+            var cat = await _catsRepository.GetCatByIdAsync(request.CatId, cancellationToken);
 
-    public Task<AdoptionResponse> RequestAdoption(CatRequest request)
-    {
-        throw new NotImplementedException();
+            cat.CancelAdoption();
+
+            await _catsRepository.UpdateCatAsync(cat, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            return new FailCatAdoptionResponse(exception);
+        }
+
+        return new SuccessCancelCatAdoptionResponse();
     }
 }
