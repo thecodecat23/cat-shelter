@@ -1,10 +1,10 @@
-﻿using Mongo2Go;
-using MongoDB.Driver;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.Xunit2;
 using CatsShelter.Service.Features.Adoption.Domain.Entities;
 using CatsShelter.Service.Features.Adoption.Infrastructure;
 using FluentAssertions;
+using Mongo2Go;
+using MongoDB.Driver;
 
 namespace CatsShelter.Service.IntegrationTests.Features.Adoption.Infrastructure;
 

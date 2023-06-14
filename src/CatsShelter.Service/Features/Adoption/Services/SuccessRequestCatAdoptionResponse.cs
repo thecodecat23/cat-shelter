@@ -1,6 +1,4 @@
-﻿using MongoDB.Bson;
-
-namespace CatsShelter.Service.Features.Adoption.Services;
+﻿namespace CatsShelter.Service.Features.Adoption.Services;
 
 public class SuccessRequestCatAdoptionResponse : CatAdoptionResponse
 {

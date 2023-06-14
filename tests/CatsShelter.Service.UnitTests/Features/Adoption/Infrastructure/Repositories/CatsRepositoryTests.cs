@@ -26,7 +26,7 @@ public class CatsRepositoryTests
     {
         // Arrange
         var cat = _fixture.Create<Cat>();
-        
+
         _mockContext
             .Setup(c => c.FindCatAsync(cat.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(cat);
@@ -44,7 +44,7 @@ public class CatsRepositoryTests
     {
         // Arrange
         var catId = _fixture.Create<string>();
-        
+
         _mockContext
             .Setup(c => c.FindCatAsync(catId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Cat)null!);

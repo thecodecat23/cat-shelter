@@ -21,14 +21,14 @@ public class CatsAdoptionGrpcService : CatsShelterService.CatsShelterServiceBase
     public override async Task<AdoptionResponse> RequestAdoption(CatRequest request, ServerCallContext context)
     {
         var catRequestAdoptionRequest = _mapper.Map<CatAdoptionRequest>(request);
-        
+
         var catRequestAdoptionResponse = await _catsAdoptionService.RequestAdoptionAsync(catRequestAdoptionRequest, context.CancellationToken);
 
         return _mapper.Map<AdoptionResponse>(catRequestAdoptionResponse);
     }
 
     public override async Task<Cats> GetAvailableCats(Empty request, ServerCallContext context)
-    {        
+    {
         var domainCats = await _catsAdoptionService.GetAvailableCatsAsync(context.CancellationToken);
 
         return new Cats
