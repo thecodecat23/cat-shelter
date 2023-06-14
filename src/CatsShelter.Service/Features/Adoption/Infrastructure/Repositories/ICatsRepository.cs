@@ -1,6 +1,6 @@
 ﻿using CatsShelter.Service.Features.Adoption.Domain.Entities;
 
-namespace CatsShelter.Service.Features.Adoption.Repositories;
+namespace CatsShelter.Service.Features.Adoption.Infrastructure.Repositories;
 
 public interface ICatsRepository
 {

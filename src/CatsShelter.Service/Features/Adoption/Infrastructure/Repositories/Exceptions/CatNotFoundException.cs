@@ -1,4 +1,4 @@
-﻿namespace CatsShelter.Service.Features.Adoption.Repositories.Exceptions;
+﻿namespace CatsShelter.Service.Features.Adoption.Infrastructure.Repositories.Exceptions;
 
 public class CatNotFoundException : Exception
 {
