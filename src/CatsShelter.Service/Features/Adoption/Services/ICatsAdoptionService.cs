@@ -2,7 +2,7 @@
 
 namespace CatsShelter.Service.Features.Adoption.Services;
 
-public interface ICatsShelterService
+public interface ICatsAdoptionService
 {
     Task<Cats> GetAvailableCats(Empty request);
     Task<AdoptionResponse> RequestAdoption(CatRequest request);
