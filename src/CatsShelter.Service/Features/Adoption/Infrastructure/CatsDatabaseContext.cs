@@ -6,7 +6,10 @@ public class CatsDatabaseContext : ICatsDatabaseContext
 {
     private readonly IMongoCollection<Cat> _cats;
 
-    public CatsDatabaseContext(IMongoClient client, string databaseName, string collectionName)
+    public CatsDatabaseContext(
+        IMongoClient client,
+        string databaseName,
+        string collectionName)
     {
         var database = client.GetDatabase(databaseName);
         _cats = database.GetCollection<Cat>(collectionName);
@@ -15,8 +18,7 @@ public class CatsDatabaseContext : ICatsDatabaseContext
     public async Task<Cat> FindCatAsync(string id, CancellationToken cancellationToken)
     {
         var filter = Builders<Cat>.Filter.Eq(c => c.Id, id);
-        var cursor = await _cats.FindAsync(filter, cancellationToken: cancellationToken);
-        return await cursor.FirstOrDefaultAsync(cancellationToken);
+        return await _cats.Find(filter).SingleAsync(cancellationToken);
     }
 
     public async Task<CatUpdateResult> ReplaceOneAsync(Cat cat, CancellationToken cancellationToken)
