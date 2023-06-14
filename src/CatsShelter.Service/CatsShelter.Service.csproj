@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="Features/Adoption/Proto/cats-shelter-service.proto" GrpcServices="Client" />
+		<Protobuf Include="Features/Adoption/Proto/cats-shelter-service.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 </Project>
