@@ -30,4 +30,8 @@
     <ProjectReference Include="..\..\src\CatsShelter.Service\CatsShelter.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Adoption\Services\" />
+  </ItemGroup>
+
 </Project>
