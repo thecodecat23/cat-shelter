@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CatsShelter.Service\CatsShelter.Service.csproj" />
+    <ProjectReference Include="..\..\src\CatsShelter.Service\CatsShelter.Service.csproj" />
   </ItemGroup>
 
 </Project>
