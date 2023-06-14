@@ -62,4 +62,27 @@ public class CatsDatabaseContextTests
             ModifiedCount = 1
         });
     }
+
+    [Fact]
+    public async Task GetAvailableCatsAsync_ShouldReturnAvailableCats_WhenThereAreAvailableCats()
+    {
+        // Arrange
+        var client = new MongoClient(_runner.ConnectionString);
+        var database = client.GetDatabase("testDatabase");
+        var collection = database.GetCollection<Cat>("testCollection");
+
+        var availableCat = _fixture.Build<Cat>().Create();
+        var unavailableCat = _fixture.Build<Cat>().Do(c => c.RequestAdoption()).Create();
+
+        await collection.InsertManyAsync(new[] { availableCat, unavailableCat });
+
+        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+
+        // Act
+        var cats = await context.GetAvailableCatsAsync(default);
+
+        // Assert
+        cats.Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(availableCat);
+    }
 }

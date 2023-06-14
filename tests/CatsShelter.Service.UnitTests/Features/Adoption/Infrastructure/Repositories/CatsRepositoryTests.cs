@@ -119,4 +119,22 @@ public class CatsRepositoryTests
         await act.Should().ThrowAsync<CatNotFoundException>();
         _mockContext.Verify(c => c.ReplaceOneAsync(cat, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task GetAvailableCatsAsync_ShouldReturnAvailableCats_WhenThereAreAvailableCats()
+    {
+        // Arrange
+        var availableCats = _fixture.CreateMany<Cat>(3).ToList();
+
+        _mockContext
+            .Setup(c => c.GetAvailableCatsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(availableCats);
+
+        // Act
+        var result = await _catsRepository.GetAvailableCatsAsync(default(CancellationToken));
+
+        // Assert
+        result.Should().BeEquivalentTo(availableCats);
+        _mockContext.Verify(c => c.GetAvailableCatsAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

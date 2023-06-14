@@ -2,6 +2,7 @@ using CatsShelter.Service.Features.Adoption.Domain.Entities;
 using MongoDB.Driver;
 
 namespace CatsShelter.Service.Features.Adoption.Infrastructure;
+
 public class CatsDatabaseContext : ICatsDatabaseContext
 {
     private readonly IMongoCollection<Cat> _cats;
@@ -13,6 +14,12 @@ public class CatsDatabaseContext : ICatsDatabaseContext
     {
         var database = client.GetDatabase(databaseName);
         _cats = database.GetCollection<Cat>(collectionName);
+    }
+
+    public async Task<List<Cat>> GetAvailableCatsAsync(CancellationToken cancellationToken)
+    {
+        var filter = Builders<Cat>.Filter.Eq(c => c.IsAvailable, true);
+        return await _cats.Find(filter).ToListAsync(cancellationToken);
     }
 
     public async Task<Cat> FindCatAsync(string id, CancellationToken cancellationToken)

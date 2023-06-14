@@ -12,6 +12,9 @@ public class CatsRepository : ICatsRepository
         _context = context;
     }
 
+    public async Task<List<Cat>> GetAvailableCatsAsync(CancellationToken cancellationToken) =>
+        await _context.GetAvailableCatsAsync(cancellationToken);
+
     public async Task<Cat> GetCatByIdAsync(string id, CancellationToken cancellationToken)
     {
         var cat = await _context.FindCatAsync(id, cancellationToken);
