@@ -85,4 +85,24 @@ public class CatsDatabaseContextTests
         cats.Should().ContainSingle()
             .Which.Should().BeEquivalentTo(availableCat);
     }
+
+    [Fact]
+    public async Task SeedDatabase_ShouldSeedCats_WhenCalled()
+    {
+        // Arrange
+        var client = new MongoClient(_runner.ConnectionString);
+        var database = client.GetDatabase("testDatabase");
+        var collection = database.GetCollection<Cat>("testCollection");
+        int expectedCats = 10;
+
+        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+
+        // Act
+        await context.SeedDatabase(expectedCats, CancellationToken.None);
+
+        // Assert
+        var actualCats = await collection.Find(FilterDefinition<Cat>.Empty).ToListAsync();
+        actualCats.Count.Should().Be(expectedCats);
+    }
+
 }

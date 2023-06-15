@@ -1,3 +1,4 @@
+using Bogus;
 using CatsShelter.Service.Features.Adoption.Domain.Entities;
 using MongoDB.Driver;
 
@@ -37,5 +38,13 @@ public class CatsDatabaseContext : ICatsDatabaseContext
             IsAcknowledged = result.IsAcknowledged,
             ModifiedCount = result.ModifiedCount
         };
+    }
+
+    public async Task SeedDatabase(int catsToSeed, CancellationToken cancellationToken)
+    {
+        var faker = new Faker<Cat>()
+            .CustomInstantiator(f => new Cat(f.Random.Guid().ToString(), f.Name.FirstName()));
+
+        await _cats.InsertManyAsync(faker.Generate(catsToSeed), default(InsertManyOptions), cancellationToken);
     }
 }
