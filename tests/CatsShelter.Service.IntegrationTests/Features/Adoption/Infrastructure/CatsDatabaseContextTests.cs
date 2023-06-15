@@ -38,6 +38,23 @@ public class CatsDatabaseContextTests
         cat.Should().BeEquivalentTo(expectedCat);
     }
 
+    [Fact]
+    public async Task FindCatAsync_ShouldReturnNull_WhenDoesNotExists()
+    {
+        // Arrange
+        var client = new MongoClient(_runner.ConnectionString);
+        var database = client.GetDatabase("testDatabase");
+        var collection = database.GetCollection<Cat>("testCollection");
+
+        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+
+        // Act
+        var cat = await context.FindCatAsync(_fixture.Create<Guid>().ToString(), default);
+
+        // Assert
+        cat.Should().BeNull();
+    }
+
     [Theory, AutoData]
     public async Task ReplaceOneAsync_ShouldReturnAcknowledgedResult_WhenUpdateIsSuccessful(Cat cat)
     {

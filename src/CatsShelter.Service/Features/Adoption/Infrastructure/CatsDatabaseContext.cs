@@ -23,10 +23,14 @@ public class CatsDatabaseContext : ICatsDatabaseContext
         return await _cats.Find(filter).ToListAsync(cancellationToken);
     }
 
-    public async Task<Cat> FindCatAsync(string id, CancellationToken cancellationToken)
+    public async Task<Cat?> FindCatAsync(string id, CancellationToken cancellationToken)
     {
         var filter = Builders<Cat>.Filter.Eq(c => c.Id, id);
-        return await _cats.Find(filter).SingleAsync(cancellationToken);
+        var result = _cats.Find(filter);
+        if (!result.Any())
+            return null;
+        
+        return await result.SingleAsync(cancellationToken);
     }
 
     public async Task<CatUpdateResult> ReplaceOneAsync(Cat cat, CancellationToken cancellationToken)
