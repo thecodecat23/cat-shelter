@@ -27,9 +27,12 @@ public class Startup
         services.AddScoped<ICatsRepository, CatsRepository>();
         services.AddScoped<ICatsAdoptionService, CatsAdoptionService>();
 
-        // Adding CatsDatabaseContext
+        services.AddScoped<ICatsDatabaseContextFactory, CatsDatabaseContextFactory>();
         services.AddScoped<ICatsDatabaseContext>(sp =>
-            new CatsDatabaseContext(mongoClient, Configuration["DatabaseName"]!, Configuration["CollectionName"]!));
+        {
+            var factory = sp.GetRequiredService<ICatsDatabaseContextFactory>();
+            return factory.Create(Configuration["DatabaseName"]!, Configuration["CollectionName"]!);
+        });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
