@@ -104,5 +104,4 @@ public class CatsDatabaseContextTests
         var actualCats = await collection.Find(FilterDefinition<Cat>.Empty).ToListAsync();
         actualCats.Count.Should().Be(expectedCats);
     }
-
 }

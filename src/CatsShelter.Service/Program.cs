@@ -1,8 +1,8 @@
 using AutoMapper;
+using CatsShelter.Service.Features.Adoption.Infrastructure;
 using CatsShelter.Service.Features.Adoption.Infrastructure.Repositories;
 using CatsShelter.Service.Features.Adoption.Services;
 using MongoDB.Driver;
-using CatsShelter.Service.Features.Adoption.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +19,7 @@ builder.Services.AddScoped<ICatsRepository, CatsRepository>();
 builder.Services.AddScoped<ICatsAdoptionService, CatsAdoptionService>();
 
 // Adding CatsDatabaseContext
-builder.Services.AddScoped<ICatsDatabaseContext>(sp => 
+builder.Services.AddScoped<ICatsDatabaseContext>(sp =>
     new CatsDatabaseContext(mongoClient, builder.Configuration["DatabaseName"]!, builder.Configuration["CollectionName"]!));
 
 var app = builder.Build();
