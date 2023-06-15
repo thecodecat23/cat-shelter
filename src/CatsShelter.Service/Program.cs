@@ -1,36 +1,35 @@
-using AutoMapper;
 using CatsShelter.Service.Features.Adoption.Infrastructure;
-using CatsShelter.Service.Features.Adoption.Infrastructure.Repositories;
-using CatsShelter.Service.Features.Adoption.Services;
-using MongoDB.Driver;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace CatsShelter.Service;
 
-// Add services to the container.
-builder.Services.AddGrpc();
-builder.Services.AddAutoMapper(typeof(Program));
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var host = CreateHostBuilder(args).Build();
 
-// Adding MongoDB client
-var mongoClient = new MongoClient(builder.Configuration["MongoDbConnection"]);
-builder.Services.AddSingleton<IMongoClient>(mongoClient);
+        // Database seeding
+        using (var scope = host.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var context = services.GetRequiredService<ICatsDatabaseContext>();
+            var cancellationTokenSource = new CancellationTokenSource(host.Services.GetRequiredService<IConfiguration>().GetValue<int>("MaxTimeoutDbSeedMilliseconds"));
+            context.SeedDatabase(host.Services.GetRequiredService<IConfiguration>().GetValue<int>("CatsToSeed"), cancellationTokenSource.Token).GetAwaiter().GetResult();
+        }
 
-builder.Services.AddScoped<IMapper, Mapper>();
-builder.Services.AddScoped<ICatsRepository, CatsRepository>();
-builder.Services.AddScoped<ICatsAdoptionService, CatsAdoptionService>();
+        host.Run();
+    }
 
-// Adding CatsDatabaseContext
-builder.Services.AddScoped<ICatsDatabaseContext>(sp =>
-    new CatsDatabaseContext(mongoClient, builder.Configuration["DatabaseName"]!, builder.Configuration["CollectionName"]!));
-
-var app = builder.Build();
-
-app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-
-app.MapGrpcService<CatsAdoptionGrpcService>();
-
-// Database seeding
-var context = app.Services.GetService<ICatsDatabaseContext>();
-var cancellationTokenSource = new CancellationTokenSource(builder.Configuration.GetValue<int>("MaxTimeoutDbSeedMilliseconds"));
-await context!.SeedDatabase(builder.Configuration.GetValue<int>("CatsToSeed"), cancellationTokenSource.Token);
-
-app.Run();
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+       Host.CreateDefaultBuilder(args)
+           .ConfigureAppConfiguration((hostingContext, config) =>
+           {
+               config.AddJsonFile("appsettings.json", optional: true)
+                     .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true)
+                     .AddEnvironmentVariables();
+           })
+           .ConfigureWebHostDefaults(webBuilder =>
+           {
+               webBuilder.UseStartup<Startup>();
+           });
+}
