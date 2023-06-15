@@ -13,6 +13,8 @@
     <PackageReference Include="AutoFixture" Version="4.18.0" />
     <PackageReference Include="AutoFixture.Xunit2" Version="4.18.0" />
     <PackageReference Include="FluentAssertions" Version="6.11.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
     <PackageReference Include="Mongo2Go" Version="3.1.3" />
     <PackageReference Include="xunit" Version="2.4.2" />
@@ -28,10 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CatsShelter.Service\CatsShelter.Service.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features\Adoption\Services\" />
   </ItemGroup>
 
 </Project>
