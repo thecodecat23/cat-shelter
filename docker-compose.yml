@@ -14,8 +14,6 @@ services:
     image: mongo
     env_file:
       - .env
-    volumes:
-      - mongodb_data_container:/data/db
     ports:
       - "27017:27017"
   mongo-seed:
@@ -24,5 +22,3 @@ services:
       - mongo
     env_file:
       - .env
-volumes:
-  mongodb_data_container:
