@@ -12,8 +12,8 @@ namespace CatsShelter.Service.IntegrationTests.Features.Adoption.Services;
 
 public class GrpcTestFixture<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 {
-    public IMongoCollection<Cat> CatsCollection { get; private set; }
-    public IMongoDatabase MongoDatabase { get; private set; }
+    public IMongoCollection<Cat>? CatsCollection { get; private set; }
+    public IMongoDatabase? MongoDatabase { get; private set; }
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
