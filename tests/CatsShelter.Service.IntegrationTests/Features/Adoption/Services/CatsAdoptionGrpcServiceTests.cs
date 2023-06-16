@@ -19,11 +19,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
         _client = new CatsShelterService.CatsShelterServiceClient(channel);
         _fixture = new Fixture();
     }
-
-    internal async Task DisposeAsync() =>
-        await _factory.CatsCollection.DeleteManyAsync(Builders<Service.Features.Adoption.Domain.Entities.Cat>.Filter.Empty);
-    
-
+              
     [Fact]
     public async Task RequestAdoption_WithValidCatRequest_ReturnsSuccessfulAdoptionResponse()
     {
@@ -48,5 +44,8 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
                 Success = true,
                 Message = expectedMessage
             });
+
+        // Clean
+        await _factory.CatsCollection.DeleteManyAsync(Builders<Service.Features.Adoption.Domain.Entities.Cat>.Filter.Empty);
     }
 }

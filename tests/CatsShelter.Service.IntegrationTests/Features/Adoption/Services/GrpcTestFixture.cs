@@ -5,7 +5,6 @@ using Mongo2Go;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Microsoft.Extensions.Hosting;
-using CatsShelter.Service.Features.Adoption.Infrastructure;
 using CatsShelter.Service.Features.Adoption.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -20,23 +19,25 @@ public class GrpcTestFixture<TStartup> : WebApplicationFactory<TStartup> where T
     {
         var mongoDbRunner = MongoDbRunner.Start();
         var mongoDbConnectionString = mongoDbRunner.ConnectionString;
+        var databaseName = $"TestDb_{Guid.NewGuid()}";
+        var collectionName = $"TestCollection_{Guid.NewGuid()}";
 
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "MongoDbConnection", mongoDbConnectionString },
-                { "DatabaseName", "TestDb" },
-                { "CollectionName", "TestCollection" }
+                { "DatabaseName", databaseName },
+                { "CollectionName", collectionName }
             });
         });
 
         var host = builder.Build();
         host.Start();
 
-        var mongoClient = new MongoClient(mongoDbRunner.ConnectionString);
-        MongoDatabase = mongoClient.GetDatabase("TestDb");
-        CatsCollection = MongoDatabase.GetCollection<Cat>("TestCollection");
+        var mongoClient = new MongoClient(mongoDbConnectionString);
+        MongoDatabase = mongoClient.GetDatabase(databaseName);
+        CatsCollection = MongoDatabase.GetCollection<Cat>(collectionName);
 
         // Add MongoClient to the service collection
         var serviceScopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
