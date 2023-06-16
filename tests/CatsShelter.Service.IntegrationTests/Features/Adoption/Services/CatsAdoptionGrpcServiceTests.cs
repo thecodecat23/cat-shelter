@@ -3,12 +3,12 @@ using CatsShelter.Service.Features.Adoption.Proto;
 using FluentAssertions;
 using Grpc.Net.Client;
 using MongoDB.Driver;
+using static CatsShelter.Service.Features.Adoption.Proto.CatsShelterService;
 
 namespace CatsShelter.Service.IntegrationTests.Features.Adoption.Services;
 
 public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startup>>
 {
-    private readonly CatsShelterService.CatsShelterServiceClient _client;
     private readonly Fixture _fixture;
     private readonly GrpcTestFixture<Startup> _factory;
 
@@ -18,29 +18,37 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     public CatsAdoptionGrpcServiceTests(GrpcTestFixture<Startup> factory)
     {
         _factory = factory;
-        var channel = GrpcChannel.ForAddress(_factory.Server.BaseAddress, new GrpcChannelOptions { HttpClient = factory.CreateClient() });
-        _client = new CatsShelterService.CatsShelterServiceClient(channel);
         _fixture = new Fixture();
     }
+
+    private CatsShelterServiceClient CreateClient() => new
+        (
+            GrpcChannel.ForAddress
+            (
+                _factory.Server.BaseAddress,
+                new GrpcChannelOptions { HttpClient = _factory.CreateClient() }
+            )
+        );
 
     [Fact]
     public async Task GetAvailableCats_ShouldReturnMappedCats_WhenCatsAreAvailable()
     {
         // Arrange
+        var client = CreateClient();
         var cats = _fixture.CreateMany<Service.Features.Adoption.Domain.Entities.Cat>(5);
 
         await _factory.CatsCollection!.InsertManyAsync(cats);
 
         // Act
-        var response = await _client.GetAvailableCatsAsync(new Empty());
+        var response = await client.GetAvailableCatsAsync(new Empty());
 
         // Assert
         response.Should()
             .NotBeNull().And
             .BeEquivalentTo(new Cats
             {
-                Cats_ = 
-                { 
+                Cats_ =
+                {
                     cats.Select(c => new Cat
                     {
                         Id = c.Id,
@@ -57,8 +65,11 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     [Fact]
     public async Task GetAvailableCats_ShouldReturnEmptyList_WhenNoCatsAreAvailable()
     {
+        // Arrange
+        var client = CreateClient();
+
         // Act
-        var response = await _client.GetAvailableCatsAsync(new Empty());
+        var response = await client.GetAvailableCatsAsync(new Empty());
 
         // Assert
         response.Should()
@@ -73,6 +84,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     public async Task RequestAdoption_ShouldReturnSuccessResponse_WhenAdoptionIsSuccessful()
     {
         // Arrange
+        var client = CreateClient();
         var cat = _fixture.Create<Service.Features.Adoption.Domain.Entities.Cat>();
 
         var catRequest = _fixture
@@ -83,7 +95,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
         await _factory.CatsCollection!.InsertOneAsync(cat);
 
         // Act
-        var response = await _client.RequestAdoptionAsync(catRequest);
+        var response = await client.RequestAdoptionAsync(catRequest);
 
         // Assert
         response.Should()
@@ -103,10 +115,11 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     public async Task RequestAdoption_ShouldReturnErrorResponse_WhenCatDoesNotExist()
     {
         // Arrange
+        var client = CreateClient();
         var catRequest = _fixture.Create<CatRequest>();
 
         // Act
-        var response = await _client.RequestAdoptionAsync(catRequest);
+        var response = await client.RequestAdoptionAsync(catRequest);
 
         // Assert
         response.Should()
@@ -122,6 +135,8 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     public async Task RequestAdoption_ShouldReturnErrorResponse_WhenCatIsNotAvaiable()
     {
         // Arrange
+        var client = CreateClient();
+
         var cat = _fixture
             .Build<Service.Features.Adoption.Domain.Entities.Cat>()
             .Do(c => c.RequestAdoption())
@@ -135,7 +150,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
         await _factory.CatsCollection!.InsertOneAsync(cat);
 
         // Act
-        var response = await _client.RequestAdoptionAsync(catRequest);
+        var response = await client.RequestAdoptionAsync(catRequest);
 
         // Assert
         response.Should()
@@ -155,7 +170,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     {
         // Arrange
         var cat = _fixture.Create<Service.Features.Adoption.Domain.Entities.Cat>();
-      
+
         var catRequest = _fixture
             .Build<CatRequest>()
             .With(c => c.Id, cat.Id)
@@ -165,9 +180,11 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
 
         // Act
         var tasks = new List<Task<AdoptionResponse>>();
+        var clients = new CatsShelterServiceClient[10];
         for (int i = 0; i < 10; i++)
         {
-            tasks.Add(_client.RequestAdoptionAsync(catRequest).ResponseAsync);
+            clients[i] = CreateClient();
+            tasks.Add(clients[i].RequestAdoptionAsync(catRequest).ResponseAsync);
         }
         var responses = await Task.WhenAll(tasks);
 
@@ -184,6 +201,8 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     public async Task CancelAdoption_ShouldReturnSuccessResponse_WhenCancellationIsSuccessful()
     {
         // Arrange
+        var client = CreateClient();
+
         var cat = _fixture
             .Build<Service.Features.Adoption.Domain.Entities.Cat>()
             .Do(c => c.RequestAdoption())
@@ -197,7 +216,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
         await _factory.CatsCollection!.InsertOneAsync(cat);
 
         // Act
-        var response = await _client.CancelAdoptionAsync(catRequest);
+        var response = await client.CancelAdoptionAsync(catRequest);
 
         // Assert
         response.Should()
@@ -216,10 +235,12 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     public async Task CancelAdoption_ShouldReturnErrorResponse_WhenCatDoesNotExist()
     {
         // Arrange
+        var client = CreateClient();
+
         var catRequest = _fixture.Create<CatRequest>();
 
         // Act
-        var response = await _client.CancelAdoptionAsync(catRequest);
+        var response = await client.CancelAdoptionAsync(catRequest);
 
         // Assert
         response.Should()

@@ -8,7 +8,7 @@ using MongoDB.Driver;
 
 namespace CatsShelter.Service.IntegrationTests.Features.Adoption.Infrastructure;
 
-public class CatsDatabaseContextTests
+public class CatsDatabaseContextTests : IDisposable
 {
     private readonly IFixture _fixture;
     private readonly MongoDbRunner _runner;
@@ -17,6 +17,11 @@ public class CatsDatabaseContextTests
     {
         _fixture = new Fixture();
         _runner = MongoDbRunner.Start();
+    }
+
+    public void Dispose()
+    {
+        _runner.Dispose();
     }
 
     [Theory, AutoData]

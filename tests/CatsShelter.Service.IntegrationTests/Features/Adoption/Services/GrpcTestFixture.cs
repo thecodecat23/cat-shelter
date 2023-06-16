@@ -12,13 +12,15 @@ namespace CatsShelter.Service.IntegrationTests.Features.Adoption.Services;
 
 public class GrpcTestFixture<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 {
+    public IHost Host { get; private set; }
+    public MongoDbRunner MongoDbRunner { get; private set; }
     public IMongoCollection<Cat>? CatsCollection { get; private set; }
     public IMongoDatabase? MongoDatabase { get; private set; }
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
-        var mongoDbRunner = MongoDbRunner.Start();
-        var mongoDbConnectionString = mongoDbRunner.ConnectionString;
+        MongoDbRunner = MongoDbRunner.Start();
+        var mongoDbConnectionString = MongoDbRunner.ConnectionString;
         var databaseName = $"TestDb_{Guid.NewGuid()}";
         var collectionName = $"TestCollection_{Guid.NewGuid()}";
 
@@ -32,15 +34,15 @@ public class GrpcTestFixture<TStartup> : WebApplicationFactory<TStartup> where T
             });
         });
 
-        var host = builder.Build();
-        host.Start();
+        Host = builder.Build();
+        Host.Start();
 
         var mongoClient = new MongoClient(mongoDbConnectionString);
         MongoDatabase = mongoClient.GetDatabase(databaseName);
         CatsCollection = MongoDatabase.GetCollection<Cat>(collectionName);
 
         // Add MongoClient to the service collection
-        var serviceScopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
+        var serviceScopeFactory = Host.Services.GetRequiredService<IServiceScopeFactory>();
         using var scope = serviceScopeFactory.CreateScope();
         var services = scope.ServiceProvider;
         var serviceCollection = new ServiceCollection();
@@ -51,6 +53,6 @@ public class GrpcTestFixture<TStartup> : WebApplicationFactory<TStartup> where T
         serviceCollection.AddSingleton<IMongoClient>(mongoClient);
         var newServiceProvider = serviceCollection.BuildServiceProvider();
 
-        return host;
+        return Host;
     }
 }
