@@ -24,17 +24,16 @@ public class GrpcTestFixture<TStartup> : WebApplicationFactory<TStartup> where T
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            { "MongoDbConnection", mongoDbConnectionString },
-            { "DatabaseName", "TestDb" },
-            { "CollectionName", "TestCollection" }
-        });
+            {
+                { "MongoDbConnection", mongoDbConnectionString },
+                { "DatabaseName", "TestDb" },
+                { "CollectionName", "TestCollection" }
+            });
         });
 
         var host = builder.Build();
         host.Start();
 
-        // Initialize MongoClient, MongoDatabase, and CatsCollection here
         var mongoClient = new MongoClient(mongoDbRunner.ConnectionString);
         MongoDatabase = mongoClient.GetDatabase("TestDb");
         CatsCollection = MongoDatabase.GetCollection<Cat>("TestCollection");

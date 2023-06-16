@@ -2,6 +2,7 @@
 using CatsShelter.Service.Features.Adoption.Proto;
 using FluentAssertions;
 using Grpc.Net.Client;
+using MongoDB.Driver;
 
 namespace CatsShelter.Service.IntegrationTests.Features.Adoption.Services;
 
@@ -18,6 +19,10 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
         _client = new CatsShelterService.CatsShelterServiceClient(channel);
         _fixture = new Fixture();
     }
+
+    internal async Task DisposeAsync() =>
+        await _factory.CatsCollection.DeleteManyAsync(Builders<Service.Features.Adoption.Domain.Entities.Cat>.Filter.Empty);
+    
 
     [Fact]
     public async Task RequestAdoption_WithValidCatRequest_ReturnsSuccessfulAdoptionResponse()
