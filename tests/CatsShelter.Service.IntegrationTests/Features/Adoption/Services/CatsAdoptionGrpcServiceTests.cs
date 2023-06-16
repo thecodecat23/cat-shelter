@@ -151,6 +151,36 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     }
 
     [Fact]
+    public async Task RequestAdoption_MultipleClients_ShouldAllowOnlyOneAdoption_WhenMultipleClientsTryToAdoptSameCat()
+    {
+        // Arrange
+        var cat = _fixture.Create<Service.Features.Adoption.Domain.Entities.Cat>();
+      
+        var catRequest = _fixture
+            .Build<CatRequest>()
+            .With(c => c.Id, cat.Id)
+            .Create();
+
+        await _factory.CatsCollection!.InsertOneAsync(cat);
+
+        // Act
+        var tasks = new List<Task<AdoptionResponse>>();
+        for (int i = 0; i < 10; i++)
+        {
+            tasks.Add(_client.RequestAdoptionAsync(catRequest).ResponseAsync);
+        }
+        var responses = await Task.WhenAll(tasks);
+
+        // Assert
+        responses.Count(r => r.Success).Should().Be(1);
+        responses.Count(r => !r.Success).Should().Be(9);
+
+        // Cleanup
+        await _factory.CatsCollection.DeleteManyAsync(Builders<Service.Features.Adoption.Domain.Entities.Cat>.Filter.Empty);
+    }
+
+
+    [Fact]
     public async Task CancelAdoption_ShouldReturnSuccessResponse_WhenCancellationIsSuccessful()
     {
         // Arrange
