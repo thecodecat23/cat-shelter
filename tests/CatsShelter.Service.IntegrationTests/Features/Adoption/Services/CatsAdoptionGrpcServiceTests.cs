@@ -9,20 +9,28 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
 {
     private readonly CatsShelterService.CatsShelterServiceClient _client;
     private readonly Fixture _fixture;
+    private readonly GrpcTestFixture<Startup> _factory;
 
     public CatsAdoptionGrpcServiceTests(GrpcTestFixture<Startup> factory)
     {
-        var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions { HttpClient = factory.CreateClient() });
+        _factory = factory;
+        var channel = GrpcChannel.ForAddress(_factory.Server.BaseAddress, new GrpcChannelOptions { HttpClient = factory.CreateClient() });
         _client = new CatsShelterService.CatsShelterServiceClient(channel);
         _fixture = new Fixture();
     }
 
     [Fact]
-    public async Task ShouldRequestAdoptionSuccessfully()
+    public async Task RequestAdoption_WithValidCatRequest_ReturnsSuccessfulAdoptionResponse()
     {
         // Arrange
         const string expectedMessage = "Adoption successful.";
-        var catRequest = _fixture.Create<CatRequest>();
+        var cat = _fixture.Create<Service.Features.Adoption.Domain.Entities.Cat>();
+        var catRequest = _fixture
+            .Build<CatRequest>()
+            .With(c => c.Id, cat.Id)
+            .Create();
+
+        await _factory.CatsCollection.InsertOneAsync(cat);
 
         // Act
         var response = await _client.RequestAdoptionAsync(catRequest);
