@@ -23,13 +23,15 @@ public class CatsDatabaseContextTests
     public async Task FindCatAsync_ShouldReturnCat_WhenCatExists(Cat expectedCat)
     {
         // Arrange
+        var databaseName = $"TestDatabase_{Guid.NewGuid()}";
+        var collectionName = $"TestCollection_{Guid.NewGuid()}";
         var client = new MongoClient(_runner.ConnectionString);
-        var database = client.GetDatabase("testDatabase");
-        var collection = database.GetCollection<Cat>("testCollection");
+        var database = client.GetDatabase(databaseName);
+        var collection = database.GetCollection<Cat>(collectionName);
 
         await collection.InsertOneAsync(expectedCat);
 
-        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+        var context = new CatsDatabaseContext(client, databaseName, collectionName);
 
         // Act
         var cat = await context.FindCatAsync(expectedCat.Id, default);
@@ -42,11 +44,13 @@ public class CatsDatabaseContextTests
     public async Task FindCatAsync_ShouldReturnNull_WhenDoesNotExists()
     {
         // Arrange
+        var databaseName = $"TestDatabase_{Guid.NewGuid()}";
+        var collectionName = $"TestCollection_{Guid.NewGuid()}";
         var client = new MongoClient(_runner.ConnectionString);
-        var database = client.GetDatabase("testDatabase");
-        var collection = database.GetCollection<Cat>("testCollection");
+        var database = client.GetDatabase(databaseName);
+        database.GetCollection<Cat>(collectionName);
 
-        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+        var context = new CatsDatabaseContext(client, databaseName, collectionName);
 
         // Act
         var cat = await context.FindCatAsync(_fixture.Create<Guid>().ToString(), default);
@@ -59,13 +63,15 @@ public class CatsDatabaseContextTests
     public async Task ReplaceOneAsync_ShouldReturnAcknowledgedResult_WhenUpdateIsSuccessful(Cat cat)
     {
         // Arrange
+        var databaseName = $"TestDatabase_{Guid.NewGuid()}";
+        var collectionName = $"TestCollection_{Guid.NewGuid()}";
         var client = new MongoClient(_runner.ConnectionString);
-        var database = client.GetDatabase("testDatabase");
-        var collection = database.GetCollection<Cat>("testCollection");
+        var database = client.GetDatabase(databaseName);
+        var collection = database.GetCollection<Cat>(collectionName);
 
         await collection.InsertOneAsync(cat);
 
-        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+        var context = new CatsDatabaseContext(client, databaseName, collectionName);
 
         cat.RequestAdoption();
 
@@ -84,16 +90,18 @@ public class CatsDatabaseContextTests
     public async Task GetAvailableCatsAsync_ShouldReturnAvailableCats_WhenThereAreAvailableCats()
     {
         // Arrange
+        var databaseName = $"TestDatabase_{Guid.NewGuid()}";
+        var collectionName = $"TestCollection_{Guid.NewGuid()}";
         var client = new MongoClient(_runner.ConnectionString);
-        var database = client.GetDatabase("testDatabase");
-        var collection = database.GetCollection<Cat>("testCollection");
+        var database = client.GetDatabase(databaseName);
+        var collection = database.GetCollection<Cat>(collectionName);
 
         var availableCat = _fixture.Build<Cat>().Create();
         var unavailableCat = _fixture.Build<Cat>().Do(c => c.RequestAdoption()).Create();
 
         await collection.InsertManyAsync(new[] { availableCat, unavailableCat });
 
-        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+        var context = new CatsDatabaseContext(client, databaseName, collectionName);
 
         // Act
         var cats = await context.GetAvailableCatsAsync(default);
@@ -107,12 +115,14 @@ public class CatsDatabaseContextTests
     public async Task SeedDatabase_ShouldSeedCats_WhenCalled()
     {
         // Arrange
+        var databaseName = $"TestDatabase_{Guid.NewGuid()}";
+        var collectionName = $"TestCollection_{Guid.NewGuid()}";
         var client = new MongoClient(_runner.ConnectionString);
-        var database = client.GetDatabase("testDatabase");
-        var collection = database.GetCollection<Cat>("testCollection");
+        var database = client.GetDatabase(databaseName);
+        var collection = database.GetCollection<Cat>(collectionName);
         int expectedCats = 10;
 
-        var context = new CatsDatabaseContext(client, "testDatabase", "testCollection");
+        var context = new CatsDatabaseContext(client, databaseName, collectionName);
 
         // Act
         await context.SeedDatabase(expectedCats, CancellationToken.None);
