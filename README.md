@@ -6,22 +6,24 @@ CatsShelter is a .NET 7 microservice that showcases the use of Test-Driven Devel
 
 The CatsShelter microservice provides the following gRPC endpoints:
 
-1. 🐾 **GetAvailableCats**: Returns a list of all cats available for adoption.
-2. 🐾 **RequestAdoption**: Allows a user to request the adoption of a cat. Once a cat is requested for adoption, it is no longer available for others to adopt.
-3. 🐾 **CancelAdoption**: Allows a user to cancel a previous adoption request. The cat will then be available for adoption again.
+1. **GetAvailableCats**: Returns a list of all cats available for adoption.
+2. **RequestAdoption**: Allows a user to request the adoption of a cat. Once a cat is requested for adoption, it is no longer available for others to adopt.
+3. **CancelAdoption**: Allows a user to cancel a previous adoption request. The cat will then be available for adoption again.
 
 ## 🧪 TDD Approach
 
 The Test-Driven Development (TDD) approach followed in this project is as follows:
 
-1. **Domain Model Tests**: Start with the innermost layer of the application, which is the domain layer. In this case, it's the `Cat` class in the `CatsShelter.Domain` project.
-2. **Domain Model Implementation**: Implement the `Cat` class in the `CatsShelter.Domain` project.
-3. **Repository Tests**: Write tests for the `ICatRepository` interface in the `CatsShelter.Application` project. These tests mock the database context and check if the correct calls are being made on it.
-4. **Repository Implementation**: Implement the `ICatRepository` interface in the `CatsShelter.Infrastructure` project. This layer interacts with the MongoDB database.
-5. **Service Tests**: Write tests for the `CatsShelterService` in the `CatsShelter.Application` project. These tests mock the `ICatRepository` and check if the correct methods are being called on it.
-6. **Service Implementation**: Implement the `CatsShelterService` in the `CatsShelter.Application` project. This layer uses the repository to perform operations and enforce any business rules.
-7. **Controller Tests**: Write tests for the gRPC Controller in the `CatsShelter.Api` project. These tests mock the `CatsShelterService` and check if the correct methods are being called on it.
-8. **Controller Implementation**: Implement the gRPC Controller in the `CatsShelter.Api` project. This layer uses the `CatsShelterService` to handle incoming gRPC requests and return the appropriate responses.
+1. **Domain Model Tests**: Start with the innermost layer of the application, which is the domain layer. In this case, it's the `Cat` class .
+2. **Domain Model Implementation**: Implement the `Cat` class.
+3. **CatsDatabaseContext Tests**: Write tests for the `CatsDatabaseContext` class. These tests ensure the correct interaction between the application and the database.
+4. **CatsDatabaseContext Implementation**: Implement the `CatsDatabaseContext` class. This class interacts with the MongoDB database.
+5. **Repository Tests**: Write tests for the `ICatRepository` interface. These tests mock the database context and check if the correct calls are being made on it.
+6. **Repository Implementation**: Implement the `ICatRepository` interface.
+7. **Service Tests**: Write tests for the `CatsAdoptionService`. These tests mock the `ICatRepository` and check if the correct methods are being called on it.
+8. **Service Implementation**: Implement the `CatsAdoptionService`. This layer uses the repository to perform operations and enforce any business rules.
+9. **gRPC Service Tests**: Write tests for the `CatsAdoptionGrpcService`. These tests mock the `CatsShelterService` and check if the correct methods are being called on it.
+10. **gRPC Service Implementation**: Implement the `CatsAdoptionGrpcService` class. This layer uses the `CatsShelterService` to handle incoming gRPC requests and return the appropriate responses.
 
 ## 🏗️ Project Structure
 
@@ -90,7 +92,7 @@ public class Cat
 }
 ```
 
-2. **Infrastructure Layer**: This layer provides concrete implementations of the interfaces defined in the domain layer. It interacts with the MongoDB database and handles operations such as finding a cat by its ID and updating a cat's status. Note: No database persistency on purpose (sample project).
+2. **Infrastructure Layer**: This layer provides concrete implementations of the interfaces defined in the domain layer. It interacts with the MongoDB database and handles operations such as finding a cat by its ID and updating a cat's status.
 
 ```csharp
 public class CatsDatabaseContext : ICatsDatabaseContext
@@ -110,9 +112,7 @@ public class CatsDatabaseContext : ICatsDatabaseContext
 }
 ```
 
-3. **Repositories**: Repositories are used to encapsulate the logic required to access data sources. They centralize common data access
-
-functionality, providing better maintainability and decoupling the infrastructure or technology used to access databases from the domain model layer.
+3. **Repositories**: Repositories are used to encapsulate the logic required to access data sources. They centralize common data access functionality, providing better maintainability and decoupling the infrastructure or technology used to access databases from the domain model layer.
 
 ```csharp
 public class CatsRepository : ICatsRepository
@@ -366,7 +366,7 @@ The unit tests are categorized based on the feature they cover. Here's an overvi
 
 - **Adoption / Services / CatsAdoptionGrpcService**: Contains unit tests for the `CatsAdoptionGrpcService` class, covering various scenarios and edge cases related to the adoption gRPC service.
 
-- **Adoption / Services / CatsAdoptionService**: Currently, there are no tests available for the `CatsAdoptionService` class. You can add unit tests to ensure the adoption service functions correctly.
+- **Adoption / Services / CatsAdoptionService**: Contains unit tests for the CatsAdoptionService class. These tests ensure the adoption service functions correctly.
 
 ### Integration Tests
 
@@ -389,7 +389,7 @@ The integration tests are organized based on the feature they cover. Here's an o
 
 - **Adoption / Services / CatsAdoptionGrpcService**: Contains integration tests for the `CatsAdoptionGrpcService` class. These tests focus on testing the adoption gRPC service in an integrated environment, simulating real-world scenarios. They ensure the service interacts correctly with the database and responds appropriately to various requests.
 
-Note: Currently, there are no integration tests available for the `CatsRepository` and `CatsAdoptionService` classes. You can consider adding integration tests to these components to ensure their proper integration with other parts of the application.
+Note: Currently, there are no integration tests available for the `CatsRepository` and `CatsAdoptionService` classes.
 
 ### CatsAdoptionGrpcServiceTests with GrpcTestFixture
 
@@ -492,13 +492,11 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
 }
 ```
 
-The `CatsAdoptionGrpcServiceTests` class is decorated with the `IClassFixture<GrpcTestFixture<Startup>>` attribute, indicating that it uses the `GrpcTestFixture` as a test fixture.
-
 The `GrpcTestFixture<Startup>` instance is passed to the constructor of the `CatsAdoptionGrpcServiceTests` class, allowing access to the test fixture's properties and functionalities.
 
-In this example, the `_fixture` object is used for generating test data using the `Fixture` library. The `CreateClient` helper method creates a gRPC client using the `GrpcChannel.ForAddress` method, configuring it with the base address of the test server obtained from the `GrpcTestFixture` instance.
+In this example, the `_fixture` object is used for generating test data. The `CreateClient` helper method creates a gRPC client using the `GrpcChannel.ForAddress` method, configuring it with the base address of the test server obtained from the `GrpcTestFixture` instance.
 
-The example integration tests in `CatsAdoptionGrpcServiceTests` demonstrate different scenarios and assertions, such as getting available cats, requesting adoption, canceling adoption, and handling edge cases. The tests use the gRPC client created through the `CreateClient` helper method to interact with the gRPC server.
+The example integration tests in `CatsAdoptionGrpcServiceTests` demonstrate different scenarios and assertions, such as getting available cats, requesting adoption, canceling adoption, and handling edge cases.
 
 The tests also include setup and cleanup steps using the in-memory MongoDB instance. Before each test, some data is inserted into the `CatsCollection` using the `_factory.CatsCollection!.InsertManyAsync` or `_factory.CatsCollection!.InsertOneAsync` method. After each test, the inserted data is deleted using the `_factory.CatsCollection.DeleteManyAsync` method.
 
@@ -517,5 +515,3 @@ To run the tests for the project, follow these steps:
    ```
 
    This command will discover and run all the tests within the solution.
-
-Ensure that you have the necessary testing frameworks and dependencies installed in your project before running the tests. You can use tools like xUnit.net and NUnit as testing frameworks, along with the appropriate NuGet packages.
