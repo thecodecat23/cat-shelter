@@ -8,6 +8,12 @@ services:
       dockerfile: CatsShelter.Service/Dockerfile
     env_file:
       - .env
+    ports:
+      - "51217:80"
+      - "44349:443"
+    volumes:
+      - ${HOME}/.aspnet/https:/https/
+      - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets      
     depends_on:
       - mongo
   mongo:
