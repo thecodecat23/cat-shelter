@@ -41,9 +41,12 @@ public class CatsAdoptionService : ICatsAdoptionService
         {
             var cat = await _catsRepository.GetCatByIdAsync(request.CatId, cancellationToken);
 
-            cat.CancelAdoption();
+            if (!cat.IsAvailable)
+            {
+                cat.CancelAdoption();
 
-            await _catsRepository.UpdateCatAsync(cat, cancellationToken);
+                await _catsRepository.UpdateCatAsync(cat, cancellationToken);
+            }
         }
         catch (Exception exception)
         {
