@@ -422,8 +422,6 @@ At this point, the application should be running inside a Docker container, and 
 
 Remember, since no volume is mounted for the MongoDB service in this sample project, the data stored in the MongoDB database will not persist across Docker sessions. This is intentional, as database persistence is not required for this sample project.
 
-add to the following section that for now the databse is noit seeded so for testing it's necessary to populate the databse by hand
-
 ### 🧪 Testing the Project
 
 **Note**: Before proceeding with testing, it's important to mention that the database is not seeded by default in the current state of the project. Therefore, in order to have meaningful data for testing, it is necessary to populate the database manually. This can be done by adding entries for cats and their details by directly interacting with the database.
