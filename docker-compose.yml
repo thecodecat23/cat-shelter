@@ -12,8 +12,8 @@ services:
       - "51217:80"
       - "44349:443"
     volumes:
-      - ${HOME}/.aspnet/https:/https/
-      - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets      
+      - ${DOCKER_HOME}/.aspnet/https:/https/
+      - ${DOCKER_HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets      
     depends_on:
       - mongo
   mongo:
@@ -21,4 +21,4 @@ services:
     env_file:
       - .env
     ports:
-      - "27018:27017"
+      - "27017:27017"
