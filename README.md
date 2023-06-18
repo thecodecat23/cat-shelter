@@ -130,83 +130,83 @@ public class CatsRepository : ICatsRepository
 
 4. **Services**: The service layer in this architecture is responsible for executing business logic and interacting with the data repository. It is composed of services that encapsulate the business rules and operations of the application. Let's break down the two services to better understand the role of the service layer.
 
-1) **CatsAdoptionGrpcService**: This class is a gRPC service that handles incoming gRPC calls related to cat adoption. It uses the `ICatsAdoptionService` to perform operations related to cat adoption. It also uses an `IMapper` to convert between the protocol buffer message types and the domain types used in the service layer.
+   a) **CatsAdoptionGrpcService**: This class is a gRPC service that handles incoming gRPC calls related to cat adoption. It uses the `ICatsAdoptionService` to perform operations related to cat adoption. It also uses an `IMapper` to convert between the protocol buffer message types and the domain types used in the service layer.
 
-```csharp
-public class CatsAdoptionGrpcService : CatsShelterService.CatsShelterServiceBase
-{
-    private readonly ICatsAdoptionService _catsAdoptionService;
-    private readonly IMapper _mapper;
+   ```csharp
+   public class CatsAdoptionGrpcService : CatsShelterService.CatsShelterServiceBase
+   {
+       private readonly ICatsAdoptionService _catsAdoptionService;
+       private readonly IMapper _mapper;
 
-    public CatsAdoptionGrpcService(
-        ICatsAdoptionService catsAdoptionService,
-        IMapper mapper
-    )
-    {
-        _catsAdoptionService = catsAdoptionService;
-        _mapper = mapper;
-    }
+       public CatsAdoptionGrpcService(
+           ICatsAdoptionService catsAdoptionService,
+           IMapper mapper
+       )
+       {
+           _catsAdoptionService = catsAdoptionService;
+           _mapper = mapper;
+       }
 
-    public override async Task<AdoptionResponse> RequestAdoption(CatRequest request, ServerCallContext context)
-    {
-        var catRequestAdoptionRequest = _mapper.Map<CatAdoptionRequest>(request);
+       public override async Task<AdoptionResponse> RequestAdoption(CatRequest request, ServerCallContext context)
+       {
+           var catRequestAdoptionRequest = _mapper.Map<CatAdoptionRequest>(request);
 
-        var catRequestAdoptionResponse = await _catsAdoptionService.RequestAdoptionAsync(catRequestAdoptionRequest, context.CancellationToken);
+           var catRequestAdoptionResponse = await _catsAdoptionService.RequestAdoptionAsync(catRequestAdoptionRequest, context.CancellationToken);
 
-        return _mapper.Map<AdoptionResponse>(catRequestAdoptionResponse);
-    }
+           return _mapper.Map<AdoptionResponse>(catRequestAdoptionResponse);
+       }
 
-    // Other methods...
-}
-```
+       // Other methods...
+   }
+   ```
 
-   - `RequestAdoption` method: This method handles requests to adopt a cat. It maps the incoming `CatRequest` to a `CatAdoptionRequest`, then calls the `RequestAdoptionAsync` method on the `ICatsAdoptionService`. The response from the service is then mapped to an `AdoptionResponse` and returned.
+      - `RequestAdoption` method: This method handles requests to adopt a cat. It maps the incoming `CatRequest` to a `CatAdoptionRequest`, then calls the `RequestAdoptionAsync` method on the `ICatsAdoptionService`. The response from the service is then mapped to an `AdoptionResponse` and returned.
 
-   - `GetAvailableCats` method: This method retrieves the list of available cats for adoption. It calls the `GetAvailableCatsAsync` method on the `ICatsAdoptionService` and maps the returned list of cats to a `Cats` message type.
+      - `GetAvailableCats` method: This method retrieves the list of available cats for adoption. It calls the `GetAvailableCatsAsync` method on the `ICatsAdoptionService` and maps the returned list of cats to a `Cats` message type.
 
-   - `CancelAdoption` method: This method handles requests to cancel a cat adoption. It maps the incoming `CatRequest` to a `CatAdoptionRequest`, then calls the `CancelAdoptionAsync` method on the `ICatsAdoptionService`. The response from the service is then mapped to an `AdoptionResponse` and returned.
+     - `CancelAdoption` method: This method handles requests to cancel a cat adoption. It maps the incoming `CatRequest` to a `CatAdoptionRequest`, then calls the `CancelAdoptionAsync` method on the `ICatsAdoptionService`. The response from the service is then mapped to an `AdoptionResponse` and returned.
 
-2) **CatsAdoptionService**: This class is a service that encapsulates the business logic related to cat adoption. It uses the `ICatsRepository` to interact with the data layer.
+   b) **CatsAdoptionService**: This class is a service that encapsulates the business logic related to cat adoption. It uses the `ICatsRepository` to interact with the data layer.
 
-```csharp
-public class CatsAdoptionService : ICatsAdoptionService
-{
-    private readonly ICatsRepository _catsRepository;
+   ```csharp
+   public class CatsAdoptionService : ICatsAdoptionService
+   {
+       private readonly ICatsRepository _catsRepository;
 
-    public CatsAdoptionService(
-        ICatsRepository catsRepository
-    )
-    {
-        _catsRepository = catsRepository;
-    }
+       public CatsAdoptionService(
+           ICatsRepository catsRepository
+       )
+       {
+           _catsRepository = catsRepository;
+       }
 
-    public async Task<CatAdoptionResponse> RequestAdoptionAsync(CatAdoptionRequest request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var cat = await _catsRepository.GetCatByIdAsync(request.CatId, cancellationToken);
+       public async Task<CatAdoptionResponse> RequestAdoptionAsync(CatAdoptionRequest request, CancellationToken cancellationToken)
+       {
+           try
+           {
+               var cat = await _catsRepository.GetCatByIdAsync(request.CatId, cancellationToken);
 
-            cat.RequestAdoption();
+               cat.RequestAdoption();
 
-            await _catsRepository.UpdateCatAsync(cat, cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            return new FailCatAdoptionResponse(exception);
-        }
+               await _catsRepository.UpdateCatAsync(cat, cancellationToken);
+           }
+           catch (Exception exception)
+           {
+               return new FailCatAdoptionResponse(exception);
+           }
 
-        return new SuccessRequestCatAdoptionResponse();
-    }
+           return new SuccessRequestCatAdoptionResponse();
+       }
 
-    // Other methods...
-}
-```
+       // Other methods...
+   }
+   ```
 
-   - `GetAvailableCatsAsync` method: This method retrieves a list of cats that are available for adoption from the repository.
+      - `GetAvailableCatsAsync` method: This method retrieves a list of cats that are available for adoption from the repository.
 
-   - `RequestAdoptionAsync` method: This method handles requests to adopt a cat. It retrieves the cat from the repository, calls the `RequestAdoption` method on the cat (which is a domain operation), and then updates the cat in the repository. If any exception occurs during this process, it returns a `FailCatAdoptionResponse`; otherwise, it returns a `SuccessRequestCatAdoptionResponse`.
+      - `RequestAdoptionAsync` method: This method handles requests to adopt a cat. It retrieves the cat from the repository, calls the `RequestAdoption` method on the cat (which is a domain operation), and then updates the cat in the repository. If any exception occurs during this process, it returns a `FailCatAdoptionResponse`; otherwise, it returns a `SuccessRequestCatAdoptionResponse`.
 
-   - `CancelAdoptionAsync` method: This method handles requests to cancel a cat adoption. It retrieves the cat from the repository, calls the `CancelAdoption` method on the cat (which is a domain operation), and then updates the cat in the repository. If any exception occurs during this process, it returns a `FailCatAdoptionResponse`; otherwise, it returns a `SuccessCancelCatAdoptionResponse`.
+      - `CancelAdoptionAsync` method: This method handles requests to cancel a cat adoption. It retrieves the cat from the repository, calls the `CancelAdoption` method on the cat (which is a domain operation), and then updates the cat in the repository. If any exception occurs during this process, it returns a `FailCatAdoptionResponse`; otherwise, it returns a `SuccessCancelCatAdoptionResponse`.
 
 5. **Proto**: This directory contains the Protobuf file that defines the gRPC service and the messages it uses.
 The gRPC service for the cat shelter application is defined using Protocol Buffers (protobuf), a language-neutral, platform-neutral, extensible mechanism for serializing structured data. The protobuf file defines the structure of the data and the service interface for the gRPC service.
