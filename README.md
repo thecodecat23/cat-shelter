@@ -424,25 +424,55 @@ Remember, since no volume is mounted for the MongoDB service in this sample proj
 
 ### 🧪 Testing the Project
 
-**Note**: Before proceeding with testing, it's important to mention that the database is not seeded by default in the current state of the project. Therefore, in order to have meaningful data for testing, it is necessary to populate the database manually. This can be done by adding entries for cats and their details by directly interacting with the database.
+Before you can proceed with testing, you need to ensure that the database is populated with data. The current state of the project does not seed the database by default. Therefore, you need to manually populate the database with entries for cats and their details. 
 
-Once the database is populated, you can proceed with testing the application using BloomRPC or any other gRPC client as described below.
+#### Populating the Database
 
-Once the application is running inside a Docker container, you can test it using a gRPC client. gRPC is a high-performance, open-source universal RPC framework, and there are several clients available that can interact with gRPC services.
+To populate the database, you can use a MongoDB client such as MongoDB Compass. MongoDB Compass is a GUI for MongoDB that allows you to interact with your data visually. It's available for Windows, Mac, and Linux.
 
-One popular option is [BloomRPC](https://github.com/uw-labs/bloomrpc). This is an open-source GUI client for gRPC services, which allows you to construct requests, send them to the gRPC server, and inspect the responses. It's similar to Postman but specifically designed for gRPC.
+Here are the steps to download, install, and use MongoDB Compass:
+
+1. **Download MongoDB Compass**: Visit the [MongoDB Download Center](https://www.mongodb.com/try/download/compass) and download the version of MongoDB Compass suitable for your operating system.
+
+2. **Install MongoDB Compass**: Open the downloaded file and follow the installation instructions. 
+
+3. **Connect to the MongoDB instance**: Open MongoDB Compass. In the connection dialog, enter the connection string for your MongoDB instance running in the Docker container:
+
+    ```
+    mongodb://localhost:27017
+    ```
+   
+   Click on "Connect" to establish the connection.
+
+4. **Populate the Database**: Once connected, you can add entries to the `cats` collection in your database. Each entry should represent a cat and should include details like `id`, `name`, and `isAvailable`. To add a new document (entry), navigate to your database and collection, then click on the "INSERT DOCUMENT" button. In the dialog that appears, you can input the details of the cat in JSON format, like so:
+
+    ```json
+    {
+        "id": "1",
+        "name": "Fluffy",
+        "isAvailable": true
+    }
+    ```
+
+   Click on "INSERT" to add the document to the collection.
+
+**Note**: Replace `localhost` with the appropriate IP address if you're running the Docker container on a different machine.
+
+#### Testing with BloomRPC
+
+Once the database is populated, you can test the application using a gRPC client. [BloomRPC](https://github.com/uw-labs/bloomrpc) is an open-source GUI client for gRPC services that allows you to construct requests, send them to the gRPC server, and inspect the responses.
 
 To test the application using BloomRPC, follow these steps:
 
-1. **Install BloomRPC**: You can download BloomRPC from the [official GitHub repository](https://github.com/uw-labs/bloomrpc). Follow the instructions provided there to install it on your machine.
+1. **Install BloomRPC**: Download BloomRPC from the [official GitHub repository](https://github.com/uw-labs/bloomrpc) and install it on your machine.
 
-2. **Import the Proto file**: After opening BloomRPC, you can import the Proto file from the project. This file describes the gRPC service and the message types it uses. In this project, the Proto file is located at `Features/Adoption/Proto/cats-shelter-service.proto`.
+2. **Import the Proto file**: Open BloomRPC and import the Proto file from the project. This file, located at `Features/Adoption/Proto/cats-shelter-service.proto`, describes the gRPC service and the message types it uses.
 
-3. **Connect to the gRPC server**: In BloomRPC, you can specify the address of the gRPC server. If you're running the application locally with Docker, the address will be `localhost` and the port will be `80` (or `443` for HTTPS), unless you've specified a different port in the Docker configuration.
+3. **Connect to the gRPC server**: Specify the address of the gRPC server in BloomRPC. If you're running the application locally with Docker, the address will be `localhost` and the port will be `80` (or `443` for HTTPS), unless you've specified a different port in the Docker configuration.
 
-4. **Send requests**: Once you've connected to the gRPC server, you can construct requests using the message types defined in the Proto file, send them to the server, and inspect the responses. For example, you can send a `GetAvailableCats` request to get a list of available cats, or a `RequestAdoption` request to request the adoption of a specific cat.
+4. **Send requests**: Construct requests using the message types defined in the Proto file, send them to the server, and inspect the responses. For example, you can send a `GetAvailableCats` request to get a list of available cats, or a `RequestAdoption` request to request the adoption of a specific cat.
 
-Remember to replace the `localhost` with the appropriate IP address if you're running the Docker container on a different machine.
+Remember to replace `localhost` with the appropriate IP address if you're running the Docker container on a different machine.
 
 ## 🧪 Tests Explanation
 
