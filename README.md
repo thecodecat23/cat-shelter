@@ -66,67 +66,68 @@ CatShelter.Service
 
 1. **Domain Layer**: This layer contains the core business logic and entities of the feature. For example, the `Cat` class represents a cat that is available for adoption. It has methods to request and cancel adoptions, which change the `IsAvailable` property of the cat.
 
-```csharp
-public class Cat
-{
-    public string Id { get; private set; }
-    public string Name { get; private set; }
-    public bool IsAvailable { get; private set; }
+   ```csharp
+   public class Cat
+   {
+       public string Id { get; private set; }
+       public string Name { get; private set; }
+       public bool IsAvailable { get; private set; }
 
-    public Cat(string id, string name)
-    {
-        Id = id;
-        Name = name;
-        IsAvailable = true;
-    }
+       public Cat(string id, string name)
+       {
+           Id = id;
+           Name = name;
+           IsAvailable = true;
+       }
 
-    public void RequestAdoption()
-    {
-        if (!IsAvailable)
-            throw new CatUnavailableException();
+       public void RequestAdoption()
+       {
+           if (!IsAvailable)
+               throw new CatUnavailableException();
 
-        IsAvailable = false;
-    }
+           IsAvailable = false;
+       }
 
-    public void CancelAdoption() => IsAvailable = true;
-}
-```
+       public void CancelAdoption() => IsAvailable = true;
+   }
+   ```
 
 2. **Infrastructure Layer**: This layer provides concrete implementations of the interfaces defined in the domain layer. It interacts with the MongoDB database and handles operations such as finding a cat by its ID and updating a cat's status.
 
-```csharp
-public class CatsDatabaseContext : ICatsDatabaseContext
-{
-    private readonly IMongoCollection<Cat> _cats;
+   ```csharp
+   public class CatsDatabaseContext : ICatsDatabaseContext
+   {
+       private readonly IMongoCollection<Cat> _cats;
 
-    public CatsDatabaseContext(
-        IMongoClient client,
-        string databaseName,
-        string collectionName)
-    {
-        var database = client.GetDatabase(databaseName);
-        _cats = database.GetCollection<Cat>(collectionName);
-    }
+       public CatsDatabaseContext(
+           IMongoClient client,
+           string databaseName,
+           string collectionName
+	   )
+       {
+           var database = client.GetDatabase(databaseName);
+           _cats = database.GetCollection<Cat>(collectionName);
+       }
 
-    // Other methods...
-}
-```
+       // Other methods...
+   }
+   ```
 
 3. **Repositories**: Repositories are used to encapsulate the logic required to access data sources. They centralize common data access functionality, providing better maintainability and decoupling the infrastructure or technology used to access databases from the domain model layer.
 
-```csharp
-public class CatsRepository : ICatsRepository
-{
-    private readonly ICatsDatabaseContext _context;
+   ```csharp
+   public class CatsRepository : ICatsRepository
+   {
+       private readonly ICatsDatabaseContext _context;
 
-    public CatsRepository(ICatsDatabaseContext context)
-    {
-        _context = context;
-    }
+       public CatsRepository(ICatsDatabaseContext context)
+       {
+           _context = context;
+       }
 
-    // Other methods...
-}
-```
+       // Other methods...
+   }
+   ```
 
 4. **Services**: The service layer in this architecture is responsible for executing business logic and interacting with the data repository. It is composed of services that encapsulate the business rules and operations of the application. Let's break down the two services to better understand the role of the service layer.
 
@@ -211,42 +212,42 @@ public class CatsRepository : ICatsRepository
 5. **Proto**: This directory contains the Protobuf file that defines the gRPC service and the messages it uses.
 The gRPC service for the cat shelter application is defined using Protocol Buffers (protobuf), a language-neutral, platform-neutral, extensible mechanism for serializing structured data. The protobuf file defines the structure of the data and the service interface for the gRPC service.
 
-Here's a brief explanation of the protobuf file:
+   Here's a brief explanation of the protobuf file:
 
-```protobuf
-syntax = "proto3";
+   ```protobuf
+   syntax = "proto3";
 
-option csharp_namespace = "CatsShelter.Service.Features.Adoption.Proto";
+   option csharp_namespace = "CatsShelter.Service.Features.Adoption.Proto";
 
-service CatsShelterService {
-  rpc GetAvailableCats (Empty) returns (Cats) {}
+   service CatsShelterService {
+     rpc GetAvailableCats (Empty) returns (Cats) {}
 
-  rpc RequestAdoption (CatRequest) returns (AdoptionResponse) {}
+     rpc RequestAdoption (CatRequest) returns (AdoptionResponse) {}
 
-  rpc CancelAdoption (CatRequest) returns (AdoptionResponse) {}
-}
+     rpc CancelAdoption (CatRequest) returns (AdoptionResponse) {}
+   }
 
-message CatRequest {
-  string id = 1;
-}
+   message CatRequest {
+     string id = 1;
+   }
 
-message Cats {
-  repeated Cat cats = 1;
-}
+   message Cats {
+     repeated Cat cats = 1;
+   }
 
-message AdoptionResponse {
-  bool success = 1;
-  string message = 2;
-}
+   message AdoptionResponse {
+     bool success = 1;
+     string message = 2;
+   }
 
-message Cat {
-  string id = 1;
-  string name = 2;
-  bool isAvailable = 3;
-}
+   message Cat {
+     string id = 1;
+     string name = 2;
+     bool isAvailable = 3;
+   }
 
-message Empty {}
-```
+   message Empty {}
+   ```
 
    - `syntax = "proto3";` - Specifies that we're using version 3 of the protobuf language.
 
