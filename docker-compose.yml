@@ -16,9 +16,3 @@ services:
       - .env
     ports:
       - "27017:27017"
-  mongo-seed:
-    build: ./mongo-seed
-    depends_on:
-      - mongo
-    env_file:
-      - .env
