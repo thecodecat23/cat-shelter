@@ -128,7 +128,45 @@ public class CatsRepository : ICatsRepository
 }
 ```
 
-4. **Services**: This layer uses the repository to perform operations and enforce any business rules. It contains services that handle the business logic of the feature.
+4. **Services**: The service layer in this architecture is responsible for executing business logic and interacting with the data repository. It is composed of services that encapsulate the business rules and operations of the application. Let's break down the two services to better understand the role of the service layer.
+
+1) **CatsAdoptionGrpcService**: This class is a gRPC service that handles incoming gRPC calls related to cat adoption. It uses the `ICatsAdoptionService` to perform operations related to cat adoption. It also uses an `IMapper` to convert between the protocol buffer message types and the domain types used in the service layer.
+
+```csharp
+public class CatsAdoptionGrpcService : CatsShelterService.CatsShelterServiceBase
+{
+    private readonly ICatsAdoptionService _catsAdoptionService;
+    private readonly IMapper _mapper;
+
+    public CatsAdoptionGrpcService(
+        ICatsAdoptionService catsAdoptionService,
+        IMapper mapper
+    )
+    {
+        _catsAdoptionService = catsAdoptionService;
+        _mapper = mapper;
+    }
+
+    public override async Task<AdoptionResponse> RequestAdoption(CatRequest request, ServerCallContext context)
+    {
+        var catRequestAdoptionRequest = _mapper.Map<CatAdoptionRequest>(request);
+
+        var catRequestAdoptionResponse = await _catsAdoptionService.RequestAdoptionAsync(catRequestAdoptionRequest, context.CancellationToken);
+
+        return _mapper.Map<AdoptionResponse>(catRequestAdoptionResponse);
+    }
+
+    // Other methods...
+}
+```
+
+   - `RequestAdoption` method: This method handles requests to adopt a cat. It maps the incoming `CatRequest` to a `CatAdoptionRequest`, then calls the `RequestAdoptionAsync` method on the `ICatsAdoptionService`. The response from the service is then mapped to an `AdoptionResponse` and returned.
+
+   - `GetAvailableCats` method: This method retrieves the list of available cats for adoption. It calls the `GetAvailableCatsAsync` method on the `ICatsAdoptionService` and maps the returned list of cats to a `Cats` message type.
+
+   - `CancelAdoption` method: This method handles requests to cancel a cat adoption. It maps the incoming `CatRequest` to a `CatAdoptionRequest`, then calls the `CancelAdoptionAsync` method on the `ICatsAdoptionService`. The response from the service is then mapped to an `AdoptionResponse` and returned.
+
+2) **CatsAdoptionService**: This class is a service that encapsulates the business logic related to cat adoption. It uses the `ICatsRepository` to interact with the data layer.
 
 ```csharp
 public class CatsAdoptionService : ICatsAdoptionService
@@ -142,11 +180,81 @@ public class CatsAdoptionService : ICatsAdoptionService
         _catsRepository = catsRepository;
     }
 
+    public async Task<CatAdoptionResponse> RequestAdoptionAsync(CatAdoptionRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var cat = await _catsRepository.GetCatByIdAsync(request.CatId, cancellationToken);
+
+            cat.RequestAdoption();
+
+            await _catsRepository.UpdateCatAsync(cat, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            return new FailCatAdoptionResponse(exception);
+        }
+
+        return new SuccessRequestCatAdoptionResponse();
+    }
+
     // Other methods...
 }
 ```
 
+   - `GetAvailableCatsAsync` method: This method retrieves a list of cats that are available for adoption from the repository.
+
+   - `RequestAdoptionAsync` method: This method handles requests to adopt a cat. It retrieves the cat from the repository, calls the `RequestAdoption` method on the cat (which is a domain operation), and then updates the cat in the repository. If any exception occurs during this process, it returns a `FailCatAdoptionResponse`; otherwise, it returns a `SuccessRequestCatAdoptionResponse`.
+
+   - `CancelAdoptionAsync` method: This method handles requests to cancel a cat adoption. It retrieves the cat from the repository, calls the `CancelAdoption` method on the cat (which is a domain operation), and then updates the cat in the repository. If any exception occurs during this process, it returns a `FailCatAdoptionResponse`; otherwise, it returns a `SuccessCancelCatAdoptionResponse`.
+
 5. **Proto**: This directory contains the Protobuf file that defines the gRPC service and the messages it uses.
+The gRPC service for the cat shelter application is defined using Protocol Buffers (protobuf), a language-neutral, platform-neutral, extensible mechanism for serializing structured data. The protobuf file defines the structure of the data and the service interface for the gRPC service.
+
+Here's a brief explanation of the protobuf file:
+
+```protobuf
+syntax = "proto3";
+
+option csharp_namespace = "CatsShelter.Service.Features.Adoption.Proto";
+
+service CatsShelterService {
+  rpc GetAvailableCats (Empty) returns (Cats) {}
+
+  rpc RequestAdoption (CatRequest) returns (AdoptionResponse) {}
+
+  rpc CancelAdoption (CatRequest) returns (AdoptionResponse) {}
+}
+
+message CatRequest {
+  string id = 1;
+}
+
+message Cats {
+  repeated Cat cats = 1;
+}
+
+message AdoptionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message Cat {
+  string id = 1;
+  string name = 2;
+  bool isAvailable = 3;
+}
+
+message Empty {}
+```
+
+   - `syntax = "proto3";` - Specifies that we're using version 3 of the protobuf language.
+
+   - `option csharp_namespace = "CatsShelter.Service.Features.Adoption.Proto";` - Specifies the namespace for the generated C# classes.
+
+   - `service CatsShelterService {...}` - Defines a gRPC service with three methods: `GetAvailableCats`, `RequestAdoption`, and `CancelAdoption`. Each method has specified request and response types.
+
+   - `message CatRequest {...}`, `message Cats {...}`, `message AdoptionResponse {...}`, `message Cat {...}`, and `message Empty {}` - Define the structure of the data that will be sent and received by the service. For example, the `CatRequest` message consists of a single string field `id`.
 
 6. **Mapping**: This directory contains AutoMapper profiles, which are used to map between the domain entities and the Protobuf messages.
 
