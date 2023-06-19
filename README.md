@@ -644,9 +644,6 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
     private readonly Fixture _fixture;
     private readonly GrpcTestFixture<Startup> _factory;
 
-    // Constants for
-
- expected success messages
     private const string ExpectedAdoptionSuccessMessage = "Adoption successful.";
     private const string ExpectedCancelAdoptionSuccessMessage = "Adoption canceled.";
 
