@@ -366,10 +366,16 @@ services:
   catsshelter.service:
     image: ${DOCKER_REGISTRY-}catsshelterservice
     build:
-      context: .
+      context: ./src
       dockerfile: src/CatsShelter.Service/Dockerfile
     env_file:
       - .env
+    ports:
+      - "51217:80"
+      - "44349:443"
+    volumes:
+      - ${DOCKER_HOME}/.aspnet/https:/https/
+      - ${DOCKER_HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets      
     depends_on:
       - mongo
   mongo:
@@ -384,25 +390,56 @@ The `catsshelter.service` service is built from the Dockerfile in the `src/CatsS
 
 The `mongo` service uses the `mongo` image, which is the official MongoDB Docker image. It also uses the environment variables defined in the `.env` file. The MongoDB service is exposed on port 27017.
 
-Note: In this sample project, no volume is mounted for the MongoDB service. This means that the data stored in the MongoDB database will not persist across Docker sessions. This is intentional, as database persistence is not required for this sample project.
+The `catsshelter.service` service also mounts two volumes: one for the HTTPS certificates and another for the user secrets. The `${DOCKER_HOME}/.aspnet/https:/https/` volume is used to store the HTTPS development certificate, and the `${DOCKER_HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets` volume is used to store the user secrets.
+
+### Docker Home Variable
+
+The `DOCKER_HOME` variable is used in the `docker-compose.yml` file to specify the path to the home directory on the host machine. This variable is typically set to the same value as the `HOME` environment variable. The `DOCKER_HOME` variable is used to specify the source directories for Docker volumes. In this case, it is used to specify the source directories for the volumes that share the HTTPS certificate and the user secrets with the Docker container.
+
+### HTTPS Development Certificate
+
+The application uses an HTTPS development certificate for secure communication. This certificate is generated using the `dotnet dev-certs` tool, which is a part of the .NET Core SDK. The certificate is then shared with the Docker container through a Docker volume.
+
+To generate the HTTPS development certificate, use the following command:
+
+```bash
+dotnet dev-certs https -ep ${DOCKER_HOME}/.aspnet/https/aspnetapp.pfx -p <password>
+```
+
+Replace `<password>` with a password of your choice. This command generates a certificate and saves it in the `${DOCKER_HOME}/.aspnet/https` directory with the name `aspnetapp.pfx`.
+
+The password for the certificate is stored in the user secrets, which are then accessed by the application at runtime. To set the user secrets, use the following commands:
+
+```bash
+dotnet user-secrets set "Kestrel:Certificates:Default:Password" "<password>"
+dotnet user-secrets set "Kestrel:Certificates:Default:Path" "/https/aspnetapp.pfx"
+```
+
+Replace `<password>` with the same password you used when generating the certificate. These commands store the password and the path to the certificate in the user secrets.
+
+The user secrets and the HTTPS certificate are then shared with the Docker container through Docker volumes. The `${DOCKER_HOME}/.aspnet/https:/https/` volume is used to share the HTTPS certificate, and the `${DOCKER_HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets` volume is used to share the user secrets.
+
+Please note that this development certificate should not be used in a production environment. For production, you should use a certificate from a trusted certificate authority.
 
 ### Environment Variables
 
 The `.env` file is used to define environment variables that are used by the Docker containers. Here's a breakdown of the `.env` file:
 
 ```env
-MONGO_INITDB_ROOT_USERNAME=mongodb_user
-MONGO_INITDB_ROOT_PASSWORD=mongodb_password
-MongoDbConnection=mongodb://myUser:myPassword@mongo:27017
-DatabaseName=database_name
-CollectionName=collection_name
+MONGO_INITDB_ROOT_USERNAME=catnip
+MONGO_INITDB_ROOT_PASSWORD=addicted
+MongoDbConnection=mongodb://catnip:addicted@mongo:27017
+DatabaseName=cats-db
+CollectionName=cats
+ASPNETCORE_URLS=https://+;http://+
+ASPNETCORE_HTTPS_PORT=44349
 ```
 
-The `MONGO_INITDB_ROOT_USERNAME` and `MONGO_INITDB_ROOT_PASSWORD` variables are used to set the username and password for the MongoDB database. The
+The `MONGO_INITDB_ROOT_USERNAME` and `MONGO_INITDB_ROOT_PASSWORD` variables are used to set the username and password for the MongoDB database. The `MongoDbConnection` variable is used to define the connection string for the MongoDB database. The `DatabaseName` and `CollectionName` variables are used to specify the name of the database and the collection that the application will use.
 
-`MongoDbConnection` variable is used to define the connection string for the MongoDB database. The `DatabaseName` and `CollectionName` variables are used to specify the name of the database and the collection that the application will use.
+The `ASPNETCORE_URLS` variable is used to configure the URLs the application will listen on. The `ASPNETCORE_HTTPS_PORT` variable is used to set the HTTPS port the application will listen on.
 
-In order to correctly run the Docker environment, this file must be added in the same path as the solution and compiled with the fitting values. For example, you should replace `mongodb_user` and `mongodb_password` with the actual username and password that you want to use for the MongoDB database. Similarly, you should replace `database_name` and `collection_name` with the actual name of the database and the collection that you want to use.
+In order to correctly run the Docker environment, this file must be added in the same path as the solution and compiled with the fitting values. For example, you should replace `catnip` and `addicted` with the actual username and password that you want to use for the MongoDB database. Similarly, you should replace `cats-db` and `cats` with the actual name of the database and the collection that you want to use.
 
 By using Docker and Docker Compose, the application and its dependencies can be run with a single command (`docker-compose up`), regardless of the host operating system. This simplifies the deployment process and ensures that the application runs in the same environment, regardless of where it is deployed.
 
@@ -414,9 +451,13 @@ To run the project locally using Docker, follow these steps:
 
 2. **Navigate to the project directory**: Use the command line to navigate into the root directory of the project.
 
-3. **Build the Docker images**: Run the `docker-compose build` command to build the Docker images for the project. This command reads the `docker-compose.yml` file and builds Docker images for the services defined in it. The build process includes executing the instructions in the Dockerfile, such as copying the project files into the Docker image, restoring the NuGet packages, and compiling the application.
+3. **Set the DOCKER_HOME environment variable**: Set the `DOCKER_HOME` environment variable to the path of your home directory. This variable is used to specify the source directories for Docker volumes.
 
-4. **Run the Docker containers**: After the Docker images have been built, you can start the Docker containers by running the `docker-compose up` command. This command starts the Docker containers for the services defined in the `docker-compose.yml` file. The containers are started in the correct order, taking into account the dependencies between them.
+4. **Generate HTTPS development certificate**: Use the `dotnet dev-certs` tool to generate an HTTPS development certificate and save it in the `${DOCKER_HOME}/.aspnet/https` directory. Remember to set the password for the certificate in the user secrets.
+
+5. **Build the Docker images**: Run the `docker-compose build` command to build the Docker images for the project. This command reads the `docker-compose.yml` file and builds Docker images for the services defined in it. The build process includes executing the instructions in the Dockerfile, such as copying the project files into the Docker image, restoring the NuGet packages, and compiling the application.
+
+6. **Run the Docker containers**: After the Docker images have been built, you can start the Docker containers by running the `docker-compose up` command. This command starts the Docker containers for the services defined in the `docker-compose.yml` file. The containers are started in the correct order, taking into account the dependencies between them.
 
 At this point, the application should be running inside a Docker container, and you should be able to interact with it as if it were running directly on your local machine. The MongoDB database is also running inside a Docker container and is accessible to the application.
 
