@@ -426,9 +426,9 @@ Please note that this development certificate should not be used in a production
 The `.env` file is used to define environment variables that are used by the Docker containers. Here's a breakdown of the `.env` file:
 
 ```env
-MONGO_INITDB_ROOT_USERNAME=catnip
-MONGO_INITDB_ROOT_PASSWORD=addicted
-MongoDbConnection=mongodb://catnip:addicted@mongo:27017
+MONGO_INITDB_ROOT_USERNAME=myUser
+MONGO_INITDB_ROOT_PASSWORD=myPassword
+MongoDbConnection=mongodb://myUser:myPassword@mongo:27017
 DatabaseName=cats-db
 CollectionName=cats
 ASPNETCORE_URLS=https://+;http://+
@@ -480,7 +480,7 @@ Here are the steps to download, install, and use MongoDB Compass:
 3. **Connect to the MongoDB instance**: Open MongoDB Compass. In the connection dialog, enter the connection string for your MongoDB instance running in the Docker container:
 
     ```
-    mongodb://localhost:27017
+    mongodb://myUser:myPassword@localhost:27017
     ```
    
    Click on "Connect" to establish the connection.
@@ -489,7 +489,7 @@ Here are the steps to download, install, and use MongoDB Compass:
 
     ```json
     {
-        "id": "1",
+        "_id": "1",
         "name": "Fluffy",
         "isAvailable": true
     }
@@ -666,7 +666,7 @@ public class CatsAdoptionGrpcServiceTests : IClassFixture<GrpcTestFixture<Startu
             )
         );
 
-    // Unit tests go here...
+    // Integration tests go here...
 }
 ```
 
