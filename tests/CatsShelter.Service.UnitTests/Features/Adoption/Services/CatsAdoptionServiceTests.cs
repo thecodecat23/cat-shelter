@@ -140,7 +140,10 @@ public class CatsAdoptionServiceTests
     {
         // Arrange
         var catRequest = _fixture.Create<CatAdoptionRequest>();
-        var cat = _fixture.Create<Cat>();
+        var cat = _fixture
+            .Build<Cat>()
+            .Do(c => c.RequestAdoption())
+            .Create();
         var adoptionResponse = new SuccessCancelCatAdoptionResponse();
 
         _mockRepository
@@ -186,7 +189,10 @@ public class CatsAdoptionServiceTests
         var catRequest = _fixture.Create<CatAdoptionRequest>();
         var expectedResponse = new FailCatAdoptionResponse(new CatUpdateException(catRequest.CatId));
 
-        var cat = _fixture.Create<Cat>();
+        var cat = _fixture
+            .Build<Cat>()
+            .Do(c => c.RequestAdoption())
+            .Create();
 
         _mockRepository
             .Setup(r => r.GetCatByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -202,5 +208,25 @@ public class CatsAdoptionServiceTests
         result.Should().BeEquivalentTo(expectedResponse);
         _mockRepository.Verify(r => r.GetCatByIdAsync(catRequest.CatId, It.IsAny<CancellationToken>()), Times.Once);
         _mockRepository.Verify(r => r.UpdateCatAsync(It.IsAny<Cat>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CancelAdoption_ShouldNotUpdateCat_WhenCatIsAlreadyAvailable()
+    {
+        // Arrange
+        var catRequest = _fixture.Create<CatAdoptionRequest>();
+        var cat = _fixture.Create<Cat>();
+
+        _mockRepository
+            .Setup(r => r.GetCatByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cat);
+
+        // Act
+        var result = await _catsAdoptionService.CancelAdoptionAsync(catRequest, default(CancellationToken));
+
+        // Assert
+        result.Should().BeOfType<SuccessCancelCatAdoptionResponse>();
+        _mockRepository.Verify(r => r.GetCatByIdAsync(catRequest.CatId, It.IsAny<CancellationToken>()), Times.Once);
+        _mockRepository.Verify(r => r.UpdateCatAsync(It.IsAny<Cat>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
