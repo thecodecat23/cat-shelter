@@ -439,7 +439,7 @@ The `MONGO_INITDB_ROOT_USERNAME` and `MONGO_INITDB_ROOT_PASSWORD` variables are 
 
 The `ASPNETCORE_URLS` variable is used to configure the URLs the application will listen on. The `ASPNETCORE_HTTPS_PORT` variable is used to set the HTTPS port the application will listen on.
 
-In order to correctly run the Docker environment, this file must be added in the same path as the solution and compiled with the fitting values. For example, you should replace `catnip` and `addicted` with the actual username and password that you want to use for the MongoDB database. Similarly, you should replace `cats-db` and `cats` with the actual name of the database and the collection that you want to use.
+In order to correctly run the Docker environment, this file must be added in the same path as the solution and compiled with the fitting values. For example, you should replace `myUser` and `myPassword` with the actual username and password that you want to use for the MongoDB database. Similarly, you should replace `cats-db` and `cats` with the actual name of the database and the collection that you want to use.
 
 By using Docker and Docker Compose, the application and its dependencies can be run with a single command (`docker-compose up`), regardless of the host operating system. This simplifies the deployment process and ensures that the application runs in the same environment, regardless of where it is deployed.
 
